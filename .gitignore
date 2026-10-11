@@ -1,0 +1,5 @@
+# your drawings, Claude's scene scripts and backups stay local
+scenes/
+*.tmp
+node_modules/
+.DS_Store

@@ -1,0 +1,33 @@
+{
+  "name": "drawmath",
+  "version": "0.1.0",
+  "description": "Open-source Claude Code skill + constraint-based geometry app: ask Claude for a diagram and it builds it live in your browser.",
+  "author": "Haroon Al Isa",
+  "homepage": "https://github.com/haroonalisa/drawmath",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/haroonalisa/drawmath.git"
+  },
+  "bugs": {
+    "url": "https://github.com/haroonalisa/drawmath/issues"
+  },
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "build": "node cli/drawmath.mjs build",
+    "info": "node cli/drawmath.mjs info"
+  },
+  "keywords": [
+    "drawmath",
+    "geometry",
+    "constraint-solver",
+    "claude-code",
+    "claude-skill",
+    "diagram",
+    "geogebra"
+  ]
+}

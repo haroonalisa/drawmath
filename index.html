@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DrawMath</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="14" r="6"/><path d="M4 20L20 4"/><circle cx="20" cy="4" r="1.8" fill="currentColor"/></svg>
+      DrawMath
+    </div>
+    <div class="group">
+      <button data-act="new" title="New drawing">New</button>
+      <button data-act="open" title="Open a saved .json (Ctrl+O)">Open</button>
+      <button data-act="save" title="Save as .json (Ctrl+S)">Save</button>
+      <button data-act="png" title="Export the canvas as PNG">PNG</button>
+      <button data-act="svg" title="Export a clean vector drawing (fits the figure, no grid)">SVG</button>
+      <select id="examples" title="Load an example"></select>
+    </div>
+    <div class="group">
+      <button data-act="undo" title="Undo (Ctrl+Z)">↶ Undo</button>
+      <button data-act="redo" title="Redo (Ctrl+Shift+Z)">↷ Redo</button>
+      <button data-act="hide" title="Hide selection (H)">Hide</button>
+      <button data-act="showAll" title="Show all hidden items (Shift+H)">Show all</button>
+      <button data-act="delete" title="Delete selection (Del)">Delete</button>
+    </div>
+    <div class="group toggles">
+      <label><input type="checkbox" data-set="grid"> Grid</label>
+      <label><input type="checkbox" data-set="snapGrid"> Snap grid</label>
+      <label><input type="checkbox" data-set="axes"> Axes</label>
+      <label><input type="checkbox" data-set="showLabels"> Labels</label>
+      <label><input type="checkbox" data-set="showDims"> Dimensions</label>
+      <label><input type="checkbox" data-set="showCons"> Constraint icons</label>
+      <label title="Draw hidden items faded so they can be selected and un-hidden"><input type="checkbox" data-set="showHidden"> Show hidden</label>
+    </div>
+    <div class="group end">
+      <button data-act="fit" title="Zoom to fit (Home)">Fit</button>
+      <button data-act="clearTraces" title="Clear traced paths">Clear traces</button>
+      <button data-act="help" title="Help & shortcuts (?)">?</button>
+    </div>
+  </header>
+
+  <div id="consbar"><span class="lbl">Constrain selection</span><div class="buttons"></div></div>
+
+  <div id="main">
+    <nav id="toolbar"></nav>
+    <div id="stage">
+      <canvas id="cv" tabindex="0"></canvas>
+      <div id="hint"></div>
+      <input id="dimEditor" type="text" spellcheck="false" autocomplete="off" placeholder="value or expression">
+      <div id="toast"></div>
+    </div>
+    <aside id="panel">
+      <section>
+        <header><h3>Variables</h3><button id="addSlider" title="Add a slider variable">+ Slider</button></header>
+        <div id="sliders"></div>
+      </section>
+      <section>
+        <header><h3>Selection</h3></header>
+        <div id="props"></div>
+      </section>
+      <section class="grow">
+        <header><h3>Constraints <span id="consCount"></span></h3></header>
+        <div id="consList"></div>
+      </section>
+    </aside>
+  </div>
+
+  <footer id="status">
+    <span id="stCoords"></span>
+    <span id="stDof"></span>
+    <span id="stSolver"></span>
+    <span id="stLive"></span>
+  </footer>
+</div>
+
+<div id="help" class="modal hidden">
+  <div class="card">
+    <button class="close" data-act="closeHelp">✕</button>
+    <h2>DrawMath — quick guide</h2>
+    <div class="cols">
+      <div>
+        <h4>Drawing</h4>
+        <ul>
+          <li><kbd>V</kbd> Move/select · <kbd>P</kbd> Point · <kbd>S</kbd> Segment · <kbd>L</kbd> Line · <kbd>R</kbd> Ray</li>
+          <li><kbd>G</kbd> Polygon · <kbd>B</kbd> Rectangle · <kbd>N</kbd> Regular polygon</li>
+          <li><kbd>C</kbd> Circle · <kbd>O</kbd> 3-point circle · <kbd>A</kbd> Arc</li>
+          <li><kbd>M</kbd> Midpoint · <kbd>I</kbd> Intersection · <kbd>T</kbd> Tangents · <kbd>F</kbd> Reflect</li>
+          <li><kbd>D</kbd> Dimension (driving) · <kbd>E</kbd> Measure (reference)</li>
+          <li>New points snap to existing points, lines, circles and intersections and stay attached. Hold <kbd>Alt</kbd> to place freely.</li>
+          <li>Two-click tools also work as press-drag-release.</li>
+        </ul>
+        <h4>Navigation</h4>
+        <ul>
+          <li>Wheel = zoom · Right-drag, middle-drag or <kbd>Space</kbd>+drag = pan · <kbd>Home</kbd> = fit</li>
+          <li><kbd>Esc</kbd> cancels the current tool, then returns to Move</li>
+          <li><kbd>Ctrl+Z</kbd>/<kbd>Ctrl+Shift+Z</kbd> undo/redo · <kbd>Del</kbd> delete · <kbd>Ctrl+A</kbd> select all</li>
+          <li><kbd>H</kbd> hide selection (it still constrains) · <kbd>Shift+H</kbd> show all · <i>Show hidden</i> draws hidden items faded so you can pick them</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Constraints</h4>
+        <ul>
+          <li>Select objects (Shift+click or box-drag), then click a button in the constraint bar.</li>
+          <li>Dragging keeps every constraint satisfied; the status bar shows the remaining degrees of freedom.</li>
+          <li>Conflicting constraints are refused and rolled back.</li>
+          <li>Click a constraint icon on the canvas (or in the list) to select it, then <kbd>Del</kbd> to remove it.</li>
+        </ul>
+        <h4>Dimensions &amp; variables</h4>
+        <ul>
+          <li>Double-click a dimension to type a value <i>or an expression</i>: <code>3.5</code>, <code>a</code>, <code>2*a+1</code>, <code>sqrt(a^2+b^2)</code>, <code>t/2</code>.</li>
+          <li>Unknown names become sliders automatically. Drag a slider and the figure updates.</li>
+          <li>▶ animates a slider (bounce / loop / once). Turn on <i>Trace path</i> on a point to draw its locus.</li>
+          <li>Angles are in degrees; trig functions use degrees too.</li>
+          <li>Reference (grey) measurements only display values; tick <i>Driving</i> to make them constrain.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json,application/json" hidden>
+
+<script src="js/expr.js?v=5"></script>
+<script src="js/geom.js?v=5"></script>
+<script src="js/model.js?v=5"></script>
+<script src="js/solver.js?v=5"></script>
+<script src="js/view.js?v=5"></script>
+<script src="js/svg.js?v=5"></script>
+<script src="js/tools.js?v=5"></script>
+<script src="js/ui.js?v=5"></script>
+<script src="js/live.js?v=5"></script>
+<script src="js/app.js?v=5"></script>
+</body>
+</html>
